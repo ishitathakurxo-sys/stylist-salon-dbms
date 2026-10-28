@@ -10,7 +10,7 @@ NAME, UID, CLASS, SECTION, TEACHER, TEACHER_ROLE = 'ISHITA THAKUR', '26MCI10169'
 SEMESTER, SUBJECT, SUBCODE, DATE = 'I', 'PL/SQL', '26CAP-602', '28-10-2026'
 TITLE = 'Stylist Salon: Online Appointment Booking System'
 SUBTITLE = '(Distributed Database Management System mini project, MySQL)'
-GITHUB = 'Not uploaded (full source code is in the project folder: database/, website/, docs/).'
+GITHUB = 'https://github.com/ishitathakurxo-sys/stylist-salon-dbms'
 
 E = html.escape
 def rd(p): return open(p, encoding='utf-8').read()
