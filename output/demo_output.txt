@@ -1,0 +1,1077 @@
+﻿--------------
+SELECT '=== DEMO 1: USER MANAGEMENT (register, login, profile) ===' AS demo
+--------------
+
++------------------------------------------------------------+
+| demo                                                       |
++------------------------------------------------------------+
+| === DEMO 1: USER MANAGEMENT (register, login, profile) === |
++------------------------------------------------------------+
+--------------
+CALL register_customer('Kabir', '9000000001', 'kabir@mail.com', 'Mall Road', 'secret99', 3, @msg)
+--------------
+
+--------------
+SELECT @msg AS result
+--------------
+
++-------------------------------+
+| result                        |
++-------------------------------+
+| OK: registered, customer id 7 |
++-------------------------------+
+--------------
+CALL register_customer('Kabir2', '9000000002', 'kabir@mail.com', 'Mall Road', 'secret99', 3, @msg)
+--------------
+
+--------------
+SELECT @msg AS duplicate_email_result
+--------------
+
++------------------------------------------+
+| duplicate_email_result                   |
++------------------------------------------+
+| FAILED: this email is already registered |
++------------------------------------------+
+--------------
+CALL register_customer('Bad Phone', '123', 'bad@mail.com', 'x', 'secret99', 1, @msg)
+--------------
+
+--------------
+SELECT @msg AS bad_phone_result
+--------------
+
++--------------------------------------------------------+
+| bad_phone_result                                       |
++--------------------------------------------------------+
+| FAILED: Check constraint 'customer_chk_1' is violated. |
++--------------------------------------------------------+
+--------------
+SELECT login_customer('riya@mail.com', 'pass123') AS right_password,
+       login_customer('riya@mail.com', 'wrong')   AS wrong_password
+--------------
+
++----------------+----------------+
+| right_password | wrong_password |
++----------------+----------------+
+|              1 |              0 |
++----------------+----------------+
+--------------
+SELECT customer_id, name, role, salt, password_hash FROM customer ORDER BY customer_id
+--------------
+
++-------------+----------------+----------+------------------+------------------------------------------------------------------+
+| customer_id | name           | role     | salt             | password_hash                                                    |
++-------------+----------------+----------+------------------+------------------------------------------------------------------+
+|           1 | Riya           | Customer | e1df9af147f722aa | fdd80564202e372747ae2ad099def44b4760233a0038f6e9f5f2a0b2b417f083 |
+|           2 | Arjun          | Customer | 383352b25d31b25c | e0e67edcbfb04946f11ed0dbda172f7f35ca3b9adffaa7f69d21e075845018fb |
+|           3 | Meera          | Customer | 0418bcf67f28c64d | 14142af543edabe2755c53e27ce7c7ba3086788856c8575fd05ea81f85445ee1 |
+|           4 | Dev            | Customer | e6bceaa1fccb588c | bd9b882a3f1d0349bd2c02a4ce59af9efaa1a64f36c7b203567caf026f9a118d |
+|           5 | Salon Admin    | Admin    | 11341854c029b769 | c2ef7c3e8005059425cf8466109773b6ec2a8b20aa744267dc776e2ecb612e7e |
+|           6 | Aman (stylist) | Stylist  | 76ec73c9f137c33b | 2451cc2766ff5e267f85e798d407b708172f36cb8bf4ccd89359b3ee34bc4fba |
+|           7 | Kabir          | Customer | f83be9038ac6ca5d | bf6a439e663db260aad993d85c9ca3fadb9c4784312d334ca870e57f73ebeb58 |
++-------------+----------------+----------+------------------+------------------------------------------------------------------+
+--------------
+CALL update_profile(1, 'Riya Sharma', '9876543299', 'Downtown, Flat 4', @msg)
+--------------
+
+--------------
+SELECT @msg AS result
+--------------
+
++---------------------+
+| result              |
++---------------------+
+| OK: profile updated |
++---------------------+
+--------------
+SELECT customer_id, name, phone, address FROM customer WHERE customer_id = 1
+--------------
+
++-------------+-------------+------------+------------------+
+| customer_id | name        | phone      | address          |
++-------------+-------------+------------+------------------+
+|           1 | Riya Sharma | 9876543299 | Downtown, Flat 4 |
++-------------+-------------+------------+------------------+
+--------------
+SELECT '=== DEMO 2: SERVICE + STAFF MANAGEMENT (admin) ===' AS demo
+--------------
+
++----------------------------------------------------+
+| demo                                               |
++----------------------------------------------------+
+| === DEMO 2: SERVICE + STAFF MANAGEMENT (admin) === |
++----------------------------------------------------+
+--------------
+CALL search_services('hair', NULL, NULL, NULL)
+--------------
+
++------------+-------------+----------+---------+----------+
+| service_id | name        | category | price   | duration |
++------------+-------------+----------+---------+----------+
+|          3 | Hair colour | Hair     | 1500.00 |       90 |
+|          2 | Hair spa    | Hair     |  800.00 |       60 |
+|          1 | Haircut     | Hair     |  300.00 |       30 |
++------------+-------------+----------+---------+----------+
+--------------
+CALL search_services(NULL, 'Skin', NULL, NULL)
+--------------
+
++------------+----------+----------+--------+----------+
+| service_id | name     | category | price  | duration |
++------------+----------+----------+--------+----------+
+|          7 | Clean-up | Skin     | 500.00 |       30 |
+|          6 | Facial   | Skin     | 900.00 |       45 |
++------------+----------+----------+--------+----------+
+--------------
+CALL search_services(NULL, NULL, 200, 500)
+--------------
+
++------------+----------+----------+--------+----------+
+| service_id | name     | category | price  | duration |
++------------+----------+----------+--------+----------+
+|          1 | Haircut  | Hair     | 300.00 |       30 |
+|          8 | Manicure | Nails    | 450.00 |       40 |
+|          7 | Clean-up | Skin     | 500.00 |       30 |
++------------+----------+----------+--------+----------+
+--------------
+CALL add_service('Head massage', 'Hair', 250, 25, @msg)
+--------------
+
+--------------
+SELECT @msg AS result
+--------------
+
++----------------------------------------------------+
+| result                                             |
++----------------------------------------------------+
+| OK: service added, id 9 (copied to all 3 branches) |
++----------------------------------------------------+
+--------------
+CALL add_service('Free service', 'Hair', -5, 10, @msg)
+--------------
+
+--------------
+SELECT @msg AS bad_price_result
+--------------
+
++-------------------------------------------------------+
+| bad_price_result                                      |
++-------------------------------------------------------+
+| FAILED: Check constraint 'service_chk_1' is violated. |
++-------------------------------------------------------+
+--------------
+CALL update_service(9, 'Head massage', 'Hair', 275, 25, @msg)
+--------------
+
+--------------
+SELECT @msg AS result
+--------------
+
++------------------------------------------------+
+| result                                         |
++------------------------------------------------+
+| OK: service updated (copied to all 3 branches) |
++------------------------------------------------+
+--------------
+SELECT * FROM service_replica WHERE service_id = 9
+--------------
+
++------+------------+--------------+----------+--------+----------+--------+
+| site | service_id | name         | category | price  | duration | active |
++------+------------+--------------+----------+--------+----------+--------+
+|    1 |          9 | Head massage | Hair     | 275.00 |       25 |      1 |
+|    2 |          9 | Head massage | Hair     | 275.00 |       25 |      1 |
+|    3 |          9 | Head massage | Hair     | 275.00 |       25 |      1 |
++------+------------+--------------+----------+--------+----------+--------+
+--------------
+CALL remove_service(9, @msg)
+--------------
+
+--------------
+SELECT @msg AS result
+--------------
+
++-----------------------------------+
+| result                            |
++-----------------------------------+
+| OK: service removed from the menu |
++-----------------------------------+
+--------------
+SELECT service_id, name, active FROM service WHERE service_id = 9
+--------------
+
++------------+--------------+--------+
+| service_id | name         | active |
++------------+--------------+--------+
+|          9 | Head massage |      0 |
++------------+--------------+--------+
+--------------
+CALL add_stylist('Isha', 2, @msg)
+--------------
+
+--------------
+SELECT @msg AS result
+--------------
+
++-------------------------+
+| result                  |
++-------------------------+
+| OK: stylist added, id 7 |
++-------------------------+
+--------------
+CALL assign_service(7, 1, @msg)
+--------------
+
+--------------
+SELECT @msg AS result
+--------------
+
++---------------------------------+
+| result                          |
++---------------------------------+
+| OK: service assigned to stylist |
++---------------------------------+
+--------------
+CALL assign_service(7, 6, @msg)
+--------------
+
+--------------
+SELECT @msg AS result
+--------------
+
++---------------------------------+
+| result                          |
++---------------------------------+
+| OK: service assigned to stylist |
++---------------------------------+
+--------------
+SELECT st.name AS stylist, b.branch_name AS branch, GROUP_CONCAT(sv.name ORDER BY sv.name) AS services
+FROM stylist st
+JOIN branch b ON b.branch_id = st.branch_id
+LEFT JOIN stylist_service ss ON ss.stylist_id = st.stylist_id
+LEFT JOIN service sv ON sv.service_id = ss.service_id
+GROUP BY st.stylist_id, st.name, b.branch_name
+--------------
+
++---------+-------------+------------------------------------------------------------------------+
+| stylist | branch      | services                                                               |
++---------+-------------+------------------------------------------------------------------------+
+| Aman    | Downtown    | Beard trim,Clean-up,Facial,Hair colour,Hair spa,Haircut,Manicure,Shave |
+| Neha    | Downtown    | Clean-up,Facial,Hair colour,Hair spa,Haircut,Manicure                  |
+| Rohit   | Campus Road | Beard trim,Hair colour,Hair spa,Haircut,Shave                          |
+| Simran  | Campus Road | Clean-up,Facial,Hair colour,Hair spa,Haircut,Manicure                  |
+| Karan   | Mall Road   | Beard trim,Hair colour,Hair spa,Haircut,Shave                          |
+| Pooja   | Mall Road   | Clean-up,Facial,Hair colour,Hair spa,Haircut,Manicure                  |
+| Isha    | Campus Road | Facial,Haircut                                                         |
++---------+-------------+------------------------------------------------------------------------+
+--------------
+SELECT '=== DEMO 3: APPOINTMENT CART (add, update, remove) ===' AS demo
+--------------
+
++--------------------------------------------------------+
+| demo                                                   |
++--------------------------------------------------------+
+| === DEMO 3: APPOINTMENT CART (add, update, remove) === |
++--------------------------------------------------------+
+--------------
+CALL add_to_cart(1, 1, @msg)
+--------------
+
+--------------
+CALL add_to_cart(1, 5, @msg)
+--------------
+
+--------------
+CALL add_to_cart(1, 99, @msg)
+--------------
+
+--------------
+SELECT @msg AS unknown_service_result
+--------------
+
++-----------------------------------------+
+| unknown_service_result                  |
++-----------------------------------------+
+| FAILED: That service is not on the menu |
++-----------------------------------------+
+--------------
+CALL show_cart(1)
+--------------
+
++---------+--------+---------+
+| service | price  | minutes |
++---------+--------+---------+
+| Haircut | 300.00 |      30 |
+| Shave   | 120.00 |      20 |
++---------+--------+---------+
++------------+---------------+
+| cart_total | total_minutes |
++------------+---------------+
+|     420.00 |            50 |
++------------+---------------+
+--------------
+CALL update_cart(1, 5, 4, @msg)
+--------------
+
+--------------
+SELECT @msg AS result
+--------------
+
++------------------+
+| result           |
++------------------+
+| OK: cart updated |
++------------------+
+--------------
+CALL show_cart(1)
+--------------
+
++------------+--------+---------+
+| service    | price  | minutes |
++------------+--------+---------+
+| Haircut    | 300.00 |      30 |
+| Beard trim | 150.00 |      20 |
++------------+--------+---------+
++------------+---------------+
+| cart_total | total_minutes |
++------------+---------------+
+|     450.00 |            50 |
++------------+---------------+
+--------------
+CALL remove_from_cart(1, 4, @msg)
+--------------
+
+--------------
+CALL add_to_cart(1, 4, @msg)
+--------------
+
+--------------
+CALL show_cart(1)
+--------------
+
++------------+--------+---------+
+| service    | price  | minutes |
++------------+--------+---------+
+| Haircut    | 300.00 |      30 |
+| Beard trim | 150.00 |      20 |
++------------+--------+---------+
++------------+---------------+
+| cart_total | total_minutes |
++------------+---------------+
+|     450.00 |            50 |
++------------+---------------+
+--------------
+SELECT '=== DEMO 4: CHECKOUT = ONE TRANSACTION (COMMIT / ROLLBACK) ===' AS demo
+--------------
+
++----------------------------------------------------------------+
+| demo                                                           |
++----------------------------------------------------------------+
+| === DEMO 4: CHECKOUT = ONE TRANSACTION (COMMIT / ROLLBACK) === |
++----------------------------------------------------------------+
+--------------
+CALL available_slots(1, DATE_ADD(CURDATE(), INTERVAL 1 DAY))
+--------------
+
++-----------+
+| free_slot |
++-----------+
+| 10:00     |
+| 11:00     |
+| 12:00     |
+| 13:00     |
+| 14:00     |
+| 15:00     |
+| 16:00     |
+| 17:00     |
++-----------+
+--------------
+CALL checkout(1, 1, 1, DATE_ADD(CURDATE(), INTERVAL 1 DAY), '11:00', @msg)
+--------------
+
+--------------
+SELECT @msg AS booking_1
+--------------
+
++---------------------------------------------------------------------+
+| booking_1                                                           |
++---------------------------------------------------------------------+
+| COMMIT: appointment 14 booked for 2026-10-29 11:00, total Rs 450.00 |
++---------------------------------------------------------------------+
+--------------
+CALL add_to_cart(4, 2, @msg)
+--------------
+
+--------------
+CALL checkout(4, 1, 1, DATE_ADD(CURDATE(), INTERVAL 1 DAY), '11:00', @msg)
+--------------
+
+--------------
+SELECT @msg AS booking_2_clash
+--------------
+
++--------------------------------------------------------------------------------+
+| booking_2_clash                                                                |
++--------------------------------------------------------------------------------+
+| ROLLBACK: that stylist is already booked at that date and time. Nothing saved. |
++--------------------------------------------------------------------------------+
+--------------
+CALL show_cart(4)
+--------------
+
++----------+--------+---------+
+| service  | price  | minutes |
++----------+--------+---------+
+| Hair spa | 800.00 |      60 |
++----------+--------+---------+
++------------+---------------+
+| cart_total | total_minutes |
++------------+---------------+
+|     800.00 |            60 |
++------------+---------------+
+--------------
+CALL checkout(4, 1, 1, DATE_ADD(CURDATE(), INTERVAL 1 DAY), '12:00', @msg)
+--------------
+
+--------------
+SELECT @msg AS booking_3
+--------------
+
++---------------------------------------------------------------------+
+| booking_3                                                           |
++---------------------------------------------------------------------+
+| COMMIT: appointment 16 booked for 2026-10-29 12:00, total Rs 800.00 |
++---------------------------------------------------------------------+
+--------------
+CALL add_to_cart(2, 2, @msg)
+--------------
+
+--------------
+CALL checkout(2, 2, 3, DATE_ADD(CURDATE(), INTERVAL 1 DAY), '12:00', @msg)
+--------------
+
+--------------
+SELECT @msg AS booking_campus
+--------------
+
++---------------------------------------------------------------------+
+| booking_campus                                                      |
++---------------------------------------------------------------------+
+| COMMIT: appointment 17 booked for 2026-10-29 12:00, total Rs 800.00 |
++---------------------------------------------------------------------+
+--------------
+CALL add_to_cart(3, 3, @msg)
+--------------
+
+--------------
+CALL checkout(3, 3, 5, DATE_ADD(CURDATE(), INTERVAL 2 DAY), '15:00', @msg)
+--------------
+
+--------------
+SELECT @msg AS booking_mall
+--------------
+
++----------------------------------------------------------------------+
+| booking_mall                                                         |
++----------------------------------------------------------------------+
+| COMMIT: appointment 18 booked for 2026-10-30 15:00, total Rs 1500.00 |
++----------------------------------------------------------------------+
+--------------
+CALL add_to_cart(3, 1, @msg)
+--------------
+
+--------------
+CALL checkout(3, 3, 5, DATE_SUB(CURDATE(), INTERVAL 1 DAY), '10:00', @msg)
+--------------
+
+--------------
+SELECT @msg AS past_date_result
+--------------
+
++---------------------------------------------------+
+| past_date_result                                  |
++---------------------------------------------------+
+| ROLLBACK: Cannot book a past date. Nothing saved. |
++---------------------------------------------------+
+--------------
+CALL checkout(3, 2, 1, DATE_ADD(CURDATE(), INTERVAL 3 DAY), '14:00', @msg)
+--------------
+
+--------------
+SELECT @msg AS wrong_branch_result
+--------------
+
++--------------------------------------------------------------------------------------------------+
+| wrong_branch_result                                                                              |
++--------------------------------------------------------------------------------------------------+
+| ROLLBACK: Stylist is not at this branch or does not do every service in the cart. Nothing saved. |
++--------------------------------------------------------------------------------------------------+
+--------------
+INSERT INTO appointment_campus (appt_id, customer_id, stylist_id, appt_date, slot, total)
+VALUES (9999, 1, 1, DATE_ADD(CURDATE(), INTERVAL 5 DAY), '10:00', 100)
+--------------
+
+mysql.exe : ERROR 1644 (45000) at line 105: Fragment rule: this stylist does not belong to Campus Road
+At C:\Users\DELL\Documents\StylistSalon\run.ps1:22 char:42
++ ... ncoding UTF8 | & $Mysql @base @extra --table --force --verbose 2>&1 |
++                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (ERROR 1644 (450... to Campus Road:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+--------------
+CALL remove_from_cart(3, 1, @msg)
+--------------
+
+--------------
+SELECT '=== DEMO 5: HISTORY, RESCHEDULE, STATUS, CANCEL (+ trigger log) ===' AS demo
+--------------
+
++---------------------------------------------------------------------+
+| demo                                                                |
++---------------------------------------------------------------------+
+| === DEMO 5: HISTORY, RESCHEDULE, STATUS, CANCEL (+ trigger log) === |
++---------------------------------------------------------------------+
+--------------
+CALL my_appointments(1)
+--------------
+
++---------+----------+---------+------------+-------+---------------------+--------+-----------+------------+
+| appt_id | branch   | stylist | appt_date  | slot  | services            | total  | status    | pay_status |
++---------+----------+---------+------------+-------+---------------------+--------+-----------+------------+
+|      13 | Downtown | Aman    | 2026-10-31 | 10:00 | Haircut             | 300.00 | Booked    | Pending    |
+|      14 | Downtown | Aman    | 2026-10-29 | 11:00 | Beard trim, Haircut | 450.00 | Booked    | Pending    |
+|       7 | Downtown | Aman    | 2026-10-23 | 11:00 | Haircut, Shave      | 420.00 | Completed | Paid       |
+|       1 | Downtown | Aman    | 2026-09-18 | 11:00 | Beard trim, Haircut | 450.00 | Completed | Paid       |
++---------+----------+---------+------------+-------+---------------------+--------+-----------+------------+
+--------------
+SET @dev_appt = (SELECT MAX(appt_id) FROM appointment_all WHERE customer_id = 4 AND status = 'Booked')
+--------------
+
+--------------
+CALL reschedule_appointment(@dev_appt, DATE_ADD(CURDATE(), INTERVAL 4 DAY), '15:00', @msg)
+--------------
+
+--------------
+SELECT @msg AS reschedule_ok
+--------------
+
++--------------------------------------------------+
+| reschedule_ok                                    |
++--------------------------------------------------+
+| COMMIT: appointment 16 moved to 2026-11-01 15:00 |
++--------------------------------------------------+
+--------------
+SET @riya_appt = (SELECT MAX(appt_id) FROM appointment_all WHERE customer_id = 1 AND status = 'Booked')
+--------------
+
+--------------
+CALL reschedule_appointment(@dev_appt, DATE_ADD(CURDATE(), INTERVAL 1 DAY), '11:00', @msg)
+--------------
+
+--------------
+SELECT @msg AS reschedule_clash
+--------------
+
++----------------------------------------------------------------------------+
+| reschedule_clash                                                           |
++----------------------------------------------------------------------------+
+| ROLLBACK: that stylist is already booked at the new time. Nothing changed. |
++----------------------------------------------------------------------------+
+--------------
+CALL set_status(@riya_appt, 'Completed', @msg)
+--------------
+
+--------------
+SELECT @msg AS skipping_a_step
+--------------
+
++---------------------------------------------------------+
+| skipping_a_step                                         |
++---------------------------------------------------------+
+| ROLLBACK: Cannot change status from Booked to Completed |
++---------------------------------------------------------+
+--------------
+CALL set_status(@riya_appt, 'In Progress', @msg)
+--------------
+
+--------------
+SELECT @msg AS step_1
+--------------
+
++-------------------------------------------+
+| step_1                                    |
++-------------------------------------------+
+| COMMIT: appointment 14 is now In Progress |
++-------------------------------------------+
+--------------
+CALL set_status(@riya_appt, 'Completed', @msg)
+--------------
+
+--------------
+SELECT @msg AS step_2
+--------------
+
++-----------------------------------------+
+| step_2                                  |
++-----------------------------------------+
+| COMMIT: appointment 14 is now Completed |
++-----------------------------------------+
+--------------
+SELECT appt_id, status, total, pay_status FROM v_appointment_history WHERE appt_id = @riya_appt
+--------------
+
++---------+-----------+--------+------------+
+| appt_id | status    | total  | pay_status |
++---------+-----------+--------+------------+
+|      14 | Completed | 450.00 | Paid       |
++---------+-----------+--------+------------+
+--------------
+CALL cancel_appointment(@dev_appt, @msg)
+--------------
+
+--------------
+SELECT @msg AS cancel_result
+--------------
+
++----------------------------------+
+| cancel_result                    |
++----------------------------------+
+| COMMIT: appointment 16 cancelled |
++----------------------------------+
+--------------
+CALL cancel_appointment(@riya_appt, @msg)
+--------------
+
+--------------
+SELECT @msg AS cancel_completed_result
+--------------
+
++------------------------------------------------------+
+| cancel_completed_result                              |
++------------------------------------------------------+
+| ROLLBACK: Only a Booked appointment can be cancelled |
++------------------------------------------------------+
+--------------
+SELECT * FROM cancel_log
+--------------
+
++--------+---------+---------------------+-------------+
+| log_id | appt_id | cancelled_on        | branch_name |
++--------+---------+---------------------+-------------+
+|      1 |      16 | 2026-10-28 07:08:32 | Downtown    |
++--------+---------+---------------------+-------------+
+--------------
+SELECT '=== DEMO 6: DISTRIBUTED DATABASE (fragmentation, allocation, dictionary) ===' AS demo
+--------------
+
++------------------------------------------------------------------------------+
+| demo                                                                         |
++------------------------------------------------------------------------------+
+| === DEMO 6: DISTRIBUTED DATABASE (fragmentation, allocation, dictionary) === |
++------------------------------------------------------------------------------+
+--------------
+SELECT 'Downtown' AS site, COUNT(*) AS rows_stored FROM appointment_downtown
+UNION ALL SELECT 'Campus Road', COUNT(*) FROM appointment_campus
+UNION ALL SELECT 'Mall Road',   COUNT(*) FROM appointment_mall
+--------------
+
++-------------+-------------+
+| site        | rows_stored |
++-------------+-------------+
+| Downtown    |           7 |
+| Campus Road |           5 |
+| Mall Road   |           5 |
++-------------+-------------+
+--------------
+SELECT * FROM data_dictionary
+--------------
+
++---------------------------+----------------------------------+--------------------------+-------------------------------+
+| table_name                | fragment_type                    | fragmentation_rule       | stored_at                     |
++---------------------------+----------------------------------+--------------------------+-------------------------------+
+| appointment_downtown      | Horizontal fragment              | stylist.branch_id = 1    | Downtown site only            |
+| appointment_campus        | Horizontal fragment              | stylist.branch_id = 2    | Campus Road site only         |
+| appointment_mall          | Horizontal fragment              | stylist.branch_id = 3    | Mall Road site only           |
+| appointment_all           | Global view (UNION ALL)          | union of the 3 fragments | Any site (virtual)            |
+| service                   | Replicated                       | full copy at every site  | All 3 sites (service_replica) |
+| branch / time_slot        | Replicated                       | full copy at every site  | All 3 sites                   |
+| stylist                   | Allocated by branch_id           | stylist.branch_id        | Own branch site               |
+| customer                  | Logical split by home_branch     | customer.home_branch     | Home branch site              |
+| payment, appointment_item | Allocated with their appointment | appt_id                  | Same site as the appointment  |
++---------------------------+----------------------------------+--------------------------+-------------------------------+
+--------------
+SELECT branch_id, appt_id, stylist_id, appt_date, slot, status, total FROM appointment_all ORDER BY appt_date, slot
+--------------
+
++-----------+---------+------------+------------+-------+-------------+---------+
+| branch_id | appt_id | stylist_id | appt_date  | slot  | status      | total   |
++-----------+---------+------------+------------+-------+-------------+---------+
+|         1 |       1 |          1 | 2026-09-18 | 11:00 | Completed   |  450.00 |
+|         1 |       2 |          2 | 2026-09-23 | 12:00 | Completed   |  800.00 |
+|         2 |       3 |          3 | 2026-09-25 | 10:00 | Completed   |  300.00 |
+|         2 |       4 |          4 | 2026-10-08 | 14:00 | Completed   | 1400.00 |
+|         3 |       5 |          5 | 2026-10-10 | 15:00 | Completed   | 1500.00 |
+|         3 |       6 |          6 | 2026-10-16 | 11:00 | Completed   |  900.00 |
+|         1 |       7 |          1 | 2026-10-23 | 11:00 | Completed   |  420.00 |
+|         2 |       8 |          3 | 2026-10-25 | 12:00 | Completed   |  300.00 |
+|         3 |       9 |          6 | 2026-10-26 | 16:00 | Cancelled   |  800.00 |
+|         1 |      10 |          2 | 2026-10-28 | 13:00 | In Progress |  450.00 |
+|         1 |      14 |          1 | 2026-10-29 | 11:00 | Completed   |  450.00 |
+|         2 |      11 |          4 | 2026-10-29 | 11:00 | Booked      |  900.00 |
+|         2 |      17 |          3 | 2026-10-29 | 12:00 | Booked      |  800.00 |
+|         3 |      18 |          5 | 2026-10-30 | 15:00 | Booked      | 1500.00 |
+|         3 |      12 |          5 | 2026-10-30 | 16:00 | Booked      |  450.00 |
+|         1 |      13 |          1 | 2026-10-31 | 10:00 | Booked      |  300.00 |
+|         1 |      16 |          1 | 2026-11-01 | 15:00 | Cancelled   |  800.00 |
++-----------+---------+------------+------------+-------+-------------+---------+
+--------------
+SELECT '=== DEMO 7: QUERY PROCESSING (global query -> branch queries) ===' AS demo
+--------------
+
++-------------------------------------------------------------------+
+| demo                                                              |
++-------------------------------------------------------------------+
+| === DEMO 7: QUERY PROCESSING (global query -> branch queries) === |
++-------------------------------------------------------------------+
+--------------
+SELECT 'Downtown' AS site, COALESCE(SUM(total), 0) AS revenue FROM appointment_downtown WHERE status <> 'Cancelled'
+UNION ALL
+SELECT 'Campus Road', COALESCE(SUM(total), 0) FROM appointment_campus WHERE status <> 'Cancelled'
+UNION ALL
+SELECT 'Mall Road',   COALESCE(SUM(total), 0) FROM appointment_mall   WHERE status <> 'Cancelled'
+--------------
+
++-------------+---------+
+| site        | revenue |
++-------------+---------+
+| Downtown    | 2870.00 |
+| Campus Road | 3700.00 |
+| Mall Road   | 4350.00 |
++-------------+---------+
+--------------
+SELECT SUM(total) AS total_revenue_all_branches FROM appointment_all WHERE status <> 'Cancelled'
+--------------
+
++----------------------------+
+| total_revenue_all_branches |
++----------------------------+
+|                   10920.00 |
++----------------------------+
+--------------
+CALL report_revenue()
+--------------
+
++--------------+----------+
+| site         | revenue  |
++--------------+----------+
+| Campus Road  |  3700.00 |
+| Downtown     |  2870.00 |
+| Mall Road    |  4350.00 |
+| GLOBAL TOTAL | 10920.00 |
++--------------+----------+
+--------------
+EXPLAIN FORMAT=TREE SELECT SUM(total) FROM appointment_all WHERE status <> 'Cancelled'
+--------------
+
++--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| EXPLAIN                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
++--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| -> Aggregate: sum(appointment_all.total)  (cost=7.65..7.65 rows=1)
+    -> Table scan on appointment_all  (cost=3.93..6.38 rows=12.8)
+        -> Union all materialize  (cost=3.73..3.73 rows=12.8)
+            -> Filter: (appointment_downtown.`status` <> 'Cancelled')  (cost=0.95 rows=5.25)
+                -> Table scan on appointment_downtown  (cost=0.95 rows=7)
+            -> Filter: (appointment_campus.`status` <> 'Cancelled')  (cost=0.75 rows=3.75)
+                -> Table scan on appointment_campus  (cost=0.75 rows=5)
+            -> Filter: (appointment_mall.`status` <> 'Cancelled')  (cost=0.75 rows=3.75)
+                -> Table scan on appointment_mall  (cost=0.75 rows=5)
+ |
++--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+--------------
+SELECT '=== DEMO 8: REPORTS ===' AS demo
+--------------
+
++-------------------------+
+| demo                    |
++-------------------------+
+| === DEMO 8: REPORTS === |
++-------------------------+
+--------------
+SELECT * FROM rpt_most_booked_service ORDER BY times_booked DESC
+--------------
+
++-------------+--------------+
+| service     | times_booked |
++-------------+--------------+
+| Haircut     |            7 |
+| Beard trim  |            3 |
+| Facial      |            3 |
+| Hair spa    |            2 |
+| Hair colour |            2 |
+| Shave       |            1 |
+| Manicure    |            1 |
+| Clean-up    |            1 |
++-------------+--------------+
+--------------
+SELECT * FROM rpt_busiest_hours       ORDER BY bookings DESC, time_slot
+--------------
+
++-----------+----------+
+| time_slot | bookings |
++-----------+----------+
+| 11:00     |        5 |
+| 12:00     |        3 |
+| 10:00     |        2 |
+| 15:00     |        2 |
+| 13:00     |        1 |
+| 14:00     |        1 |
+| 16:00     |        1 |
++-----------+----------+
+--------------
+SELECT * FROM rpt_stylist_bookings    ORDER BY bookings DESC, stylist
+--------------
+
++---------+-------------+----------+---------+
+| stylist | branch      | bookings | revenue |
++---------+-------------+----------+---------+
+| Aman    | Downtown    |        4 | 1620.00 |
+| Karan   | Mall Road   |        3 | 3450.00 |
+| Rohit   | Campus Road |        3 | 1400.00 |
+| Neha    | Downtown    |        2 | 1250.00 |
+| Simran  | Campus Road |        2 | 2300.00 |
+| Pooja   | Mall Road   |        1 |  900.00 |
++---------+-------------+----------+---------+
+--------------
+SELECT * FROM rpt_daily_revenue       ORDER BY day
+--------------
+
++------------+---------+
+| day        | revenue |
++------------+---------+
+| 2026-09-18 |  450.00 |
+| 2026-09-23 |  800.00 |
+| 2026-09-25 |  300.00 |
+| 2026-10-08 | 1400.00 |
+| 2026-10-10 | 1500.00 |
+| 2026-10-16 |  900.00 |
+| 2026-10-23 |  420.00 |
+| 2026-10-25 |  300.00 |
+| 2026-10-28 |  450.00 |
+| 2026-10-29 | 2150.00 |
+| 2026-10-30 | 1950.00 |
+| 2026-10-31 |  300.00 |
++------------+---------+
+--------------
+SELECT * FROM rpt_monthly_revenue     ORDER BY month
+--------------
+
++---------+---------+
+| month   | revenue |
++---------+---------+
+| 2026-09 | 1550.00 |
+| 2026-10 | 9370.00 |
++---------+---------+
+--------------
+SELECT * FROM rpt_branch_revenue      ORDER BY branch
+--------------
+
++-------------+---------+
+| branch      | revenue |
++-------------+---------+
+| Campus Road | 3700.00 |
+| Downtown    | 2870.00 |
+| Mall Road   | 4350.00 |
++-------------+---------+
+--------------
+SELECT '=== DEMO 9: TRANSACTIONS, ACID, RECOVERY ===' AS demo
+--------------
+
++----------------------------------------------+
+| demo                                         |
++----------------------------------------------+
+| === DEMO 9: TRANSACTIONS, ACID, RECOVERY === |
++----------------------------------------------+
+--------------
+SELECT COUNT(*) AS before_count FROM service
+--------------
+
++--------------+
+| before_count |
++--------------+
+|            9 |
++--------------+
+--------------
+START TRANSACTION
+--------------
+
+--------------
+INSERT INTO service (name, category, price, duration) VALUES ('Test service', 'Hair', 100, 10)
+--------------
+
+--------------
+SELECT COUNT(*) AS during_count FROM service
+--------------
+
++--------------+
+| during_count |
++--------------+
+|           10 |
++--------------+
+--------------
+ROLLBACK
+--------------
+
+--------------
+SELECT COUNT(*) AS after_rollback FROM service
+--------------
+
++----------------+
+| after_rollback |
++----------------+
+|              9 |
++----------------+
+--------------
+START TRANSACTION
+--------------
+
+--------------
+INSERT INTO service (name, category, price, duration) VALUES ('Keep me', 'Hair', 100, 10)
+--------------
+
+--------------
+SAVEPOINT after_first
+--------------
+
+--------------
+INSERT INTO service (name, category, price, duration) VALUES ('Drop me', 'Hair', 100, 10)
+--------------
+
+--------------
+ROLLBACK TO after_first
+--------------
+
+--------------
+COMMIT
+--------------
+
+--------------
+SELECT name FROM service WHERE name IN ('Keep me', 'Drop me')
+--------------
+
++---------+
+| name    |
++---------+
+| Keep me |
++---------+
+--------------
+DELETE FROM service WHERE name = 'Keep me'
+--------------
+
+--------------
+INSERT INTO service (name, category, price, duration) VALUES ('Bad price', 'Hair', -5, 10)
+--------------
+
+--------------
+INSERT INTO customer (name, phone, email, salt, password_hash) VALUES ('X', '12', 'x@x.com', 's', 'h')
+--------------
+
+ERROR 3819 (HY000) at line 192: Check constraint 'service_chk_1' is violated.
+ERROR 3819 (HY000) at line 193: Check constraint 'customer_chk_1' is violated.
+--------------
+ERROR 1452 (23000) at line 194: Cannot add or update a child row: a foreign key constraint fails 
+(`stylist_salon`.`stylist`, CONSTRAINT `stylist_ibfk_1` FOREIGN KEY (`branch_id`) REFERENCES `branch` (`branch_id`))
+INSERT INTO stylist (name, branch_id) VALUES ('Ghost', 99)
+--------------
+
+--------------
+SHOW VARIABLES LIKE 'innodb_flush_log_at_trx_commit'
+--------------
+
++--------------------------------+-------+
+| Variable_name                  | Value |
++--------------------------------+-------+
+| innodb_flush_log_at_trx_commit | 1     |
++--------------------------------+-------+
+--------------
+SHOW VARIABLES LIKE 'innodb_redo_log_capacity'
+--------------
+
++--------------------------+-----------+
+| Variable_name            | Value     |
++--------------------------+-----------+
+| innodb_redo_log_capacity | 104857600 |
++--------------------------+-----------+
+--------------
+SHOW GLOBAL STATUS LIKE 'Innodb_os_log_written'
+--------------
+
++-----------------------+---------+
+| Variable_name         | Value   |
++-----------------------+---------+
+| Innodb_os_log_written | 2516992 |
++-----------------------+---------+
+--------------
+START TRANSACTION
+--------------
+
+--------------
+UPDATE service SET price = price + 1 WHERE service_id = 1
+--------------
+
+--------------
+COMMIT
+--------------
+
+--------------
+SHOW GLOBAL STATUS LIKE 'Innodb_os_log_written'
+--------------
+
++-----------------------+---------+
+| Variable_name         | Value   |
++-----------------------+---------+
+| Innodb_os_log_written | 2518016 |
++-----------------------+---------+
+--------------
+UPDATE service SET price = price - 1 WHERE service_id = 1
+--------------
+
+--------------
+SELECT '=== DEMO 10: SECURITY (SQL injection, bind variables) ===' AS demo
+--------------
+
++-----------------------------------------------------------+
+| demo                                                      |
++-----------------------------------------------------------+
+| === DEMO 10: SECURITY (SQL injection, bind variables) === |
++-----------------------------------------------------------+
+--------------
+SELECT login_customer('x'' OR ''1''=''1', 'x'' OR ''1''=''1') AS injection_attempt
+--------------
+
++-------------------+
+| injection_attempt |
++-------------------+
+|                 0 |
++-------------------+
+--------------
+SET @e = 'riya@mail.com'
+--------------
+
+--------------
+PREPARE stmt FROM 'SELECT customer_id, name FROM customer WHERE email = ?'
+--------------
+
+--------------
+EXECUTE stmt USING @e
+--------------
+
++-------------+-------------+
+| customer_id | name        |
++-------------+-------------+
+|           1 | Riya Sharma |
++-------------+-------------+
+--------------
+DEALLOCATE PREPARE stmt
+--------------
+

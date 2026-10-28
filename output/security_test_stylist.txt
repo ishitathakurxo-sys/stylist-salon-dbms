@@ -1,0 +1,83 @@
+﻿--------------
+SELECT CURRENT_USER() AS logged_in_as, CURRENT_ROLE() AS active_role
+--------------
+
++---------------------+---------------------+
+| logged_in_as        | active_role         |
++---------------------+---------------------+
+| u_stylist@localhost | `salon_stylist`@`%` |
++---------------------+---------------------+
+--------------
+SELECT appt_id, branch, stylist, appt_date, slot, status FROM v_appointment_history WHERE status IN ('Booked','In Progress') ORDER BY appt_date
+--------------
+
++---------+-------------+---------+------------+-------+-------------+
+| appt_id | branch      | stylist | appt_date  | slot  | status      |
++---------+-------------+---------+------------+-------+-------------+
+|      10 | Downtown    | Neha    | 2026-10-28 | 13:00 | In Progress |
+|      11 | Campus Road | Simran  | 2026-10-29 | 11:00 | Booked      |
+|      17 | Campus Road | Rohit   | 2026-10-29 | 12:00 | Booked      |
+|      12 | Mall Road   | Karan   | 2026-10-30 | 16:00 | Booked      |
+|      18 | Mall Road   | Karan   | 2026-10-30 | 15:00 | Booked      |
+|      13 | Downtown    | Aman    | 2026-10-31 | 10:00 | Booked      |
++---------+-------------+---------+------------+-------+-------------+
+--------------
+SELECT * FROM rpt_stylist_bookings
+--------------
+
++---------+-------------+----------+---------+
+| stylist | branch      | bookings | revenue |
++---------+-------------+----------+---------+
+| Rohit   | Campus Road |        3 | 1400.00 |
+| Simran  | Campus Road |        2 | 2300.00 |
+| Aman    | Downtown    |        4 | 1620.00 |
+| Neha    | Downtown    |        2 | 1250.00 |
+| Karan   | Mall Road   |        3 | 3450.00 |
+| Pooja   | Mall Road   |        1 |  900.00 |
++---------+-------------+----------+---------+
+--------------
+CALL set_status(0, 'In Progress', @m)
+--------------
+
+--------------
+SELECT @m AS result
+--------------
+
++---------------------------------+
+| result                          |
++---------------------------------+
+| ROLLBACK: Appointment not found |
++---------------------------------+
+--------------
+CALL checkout(1, 1, 1, CURDATE(), '10:00', @m)
+--------------
+
+--------------
+CALL cancel_appointment(1, @m)
+--------------
+
+mysql.exe : ERROR 1370 (42000) at line 12: execute command denied to user 'u_stylist'@'localhost' for routine 
+'stylist_salon.checkout'
+At C:\Users\DELL\Documents\StylistSalon\run.ps1:42 char:68
++ ... ql') -Raw | & $Mysql -u u_stylist -h 127.0.0.1 -P $Port --table --for ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (ERROR 1370 (420...salon.checkout':String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ERROR 1370 (42000) at line 13: execute command denied to user 'u_stylist'@'localhost' for routine 
+'stylist_salon.cancel_appointment'
+--------------
+SELECT * FROM customer
+--------------
+
+ERROR 1142 (42000) at line 14: SELECT command denied to user 'u_stylist'@'localhost' for table 'customer'
+--------------
+SELECT * FROM rpt_monthly_revenue
+--------------
+
+ERROR 1142 (42000) at line 15: SELECT command denied to user 'u_stylist'@'localhost' for table 'rpt_monthly_revenue'
+--------------
+DELETE FROM appointment_downtown
+--------------
+
+ERROR 1142 (42000) at line 16: DELETE command denied to user 'u_stylist'@'localhost' for table 'appointment_downtown'

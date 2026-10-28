@@ -1,0 +1,164 @@
+﻿--------------
+DROP VIEW  IF EXISTS integrated_appointments
+--------------
+
+--------------
+DROP VIEW  IF EXISTS map_source_campus
+--------------
+
+--------------
+DROP VIEW  IF EXISTS map_source_downtown
+--------------
+
+--------------
+DROP TABLE IF EXISTS src_campus_app
+--------------
+
+--------------
+DROP TABLE IF EXISTS src_downtown_legacy
+--------------
+
+--------------
+CREATE TABLE src_downtown_legacy (
+  APPT_NO   INT,
+  CUST_NAME VARCHAR(40),
+  APPT_DT   VARCHAR(11),          
+  SLOT_TXT  VARCHAR(5),
+  AMT_PAISE INT                   
+)
+--------------
+
+--------------
+INSERT INTO src_downtown_legacy VALUES
+  (101, 'Riya',  '28-OCT-2026', '11:00', 30000),
+  (102, 'Dev',   '29-OCT-2026', '12:00', 80000)
+--------------
+
+--------------
+CREATE TABLE src_campus_app (
+  id          INT,
+  customer    VARCHAR(40),
+  starts_at   DATETIME,           
+  price_rs    DECIMAL(8,2)
+)
+--------------
+
+--------------
+INSERT INTO src_campus_app VALUES
+  (7, 'Arjun', '2026-10-29 12:00:00', 800.00),
+  (8, 'Neel',  '2026-10-30 15:00:00', 450.00)
+--------------
+
+--------------
+CREATE VIEW map_source_downtown AS
+  SELECT 'Downtown'                              AS branch,
+         CONCAT('D-', APPT_NO)                   AS appt_ref,     
+         CUST_NAME                               AS customer,     
+         STR_TO_DATE(APPT_DT, '%d-%b-%Y')        AS appt_date,    
+         SLOT_TXT                                AS slot,
+         AMT_PAISE / 100                         AS total_rs      
+  FROM src_downtown_legacy
+--------------
+
+--------------
+CREATE VIEW map_source_campus AS
+  SELECT 'Campus Road'                           AS branch,
+         CONCAT('C-', id)                        AS appt_ref,     
+         customer                                AS customer,
+         DATE(starts_at)                         AS appt_date,    
+         TIME_FORMAT(starts_at, '%H:%i')         AS slot,         
+         price_rs                                AS total_rs
+  FROM src_campus_app
+--------------
+
+--------------
+CREATE VIEW integrated_appointments AS
+  SELECT * FROM map_source_downtown
+  UNION ALL
+  SELECT * FROM map_source_campus
+--------------
+
+--------------
+SELECT '--- Integrated view: one table, even though the sources are different ---' AS step
+--------------
+
++---------------------------------------------------------------------------+
+| step                                                                      |
++---------------------------------------------------------------------------+
+| --- Integrated view: one table, even though the sources are different --- |
++---------------------------------------------------------------------------+
+--------------
+SELECT * FROM integrated_appointments ORDER BY appt_date, slot
+--------------
+
++-------------+----------+----------+------------+-------+----------+
+| branch      | appt_ref | customer | appt_date  | slot  | total_rs |
++-------------+----------+----------+------------+-------+----------+
+| Downtown    | D-101    | Riya     | 2026-10-28 | 11:00 | 300.0000 |
+| Downtown    | D-102    | Dev      | 2026-10-29 | 12:00 | 800.0000 |
+| Campus Road | C-7      | Arjun    | 2026-10-29 | 12:00 | 800.0000 |
+| Campus Road | C-8      | Neel     | 2026-10-30 | 15:00 | 450.0000 |
++-------------+----------+----------+------------+-------+----------+
+--------------
+SELECT '--- Global question: revenue on 2026-10-29 at ALL branches ---' AS step
+--------------
+
++----------------------------------------------------------------+
+| step                                                           |
++----------------------------------------------------------------+
+| --- Global question: revenue on 2026-10-29 at ALL branches --- |
++----------------------------------------------------------------+
+--------------
+SELECT SUM(total_rs) AS revenue FROM integrated_appointments WHERE appt_date = '2026-10-29'
+--------------
+
++-----------+
+| revenue   |
++-----------+
+| 1600.0000 |
++-----------+
+--------------
+SELECT '--- What the middleware really sends (translated per source) ---' AS step
+--------------
+
++------------------------------------------------------------------+
+| step                                                             |
++------------------------------------------------------------------+
+| --- What the middleware really sends (translated per source) --- |
++------------------------------------------------------------------+
+--------------
+SELECT SUM(AMT_PAISE) / 100 AS downtown_part FROM src_downtown_legacy WHERE APPT_DT = '29-OCT-2026'
+--------------
+
++---------------+
+| downtown_part |
++---------------+
+|      800.0000 |
++---------------+
+--------------
+SELECT SUM(price_rs) AS campus_part FROM src_campus_app WHERE DATE(starts_at) = '2026-10-29'
+--------------
+
++-------------+
+| campus_part |
++-------------+
+|      800.00 |
++-------------+
+--------------
+SELECT '--- Source selection: only Campus Road is asked ---' AS step
+--------------
+
++-----------------------------------------------------+
+| step                                                |
++-----------------------------------------------------+
+| --- Source selection: only Campus Road is asked --- |
++-----------------------------------------------------+
+--------------
+SELECT * FROM map_source_campus WHERE customer = 'Arjun'
+--------------
+
++-------------+----------+----------+------------+-------+----------+
+| branch      | appt_ref | customer | appt_date  | slot  | total_rs |
++-------------+----------+----------+------------+-------+----------+
+| Campus Road | C-7      | Arjun    | 2026-10-29 | 12:00 |   800.00 |
++-------------+----------+----------+------------+-------+----------+

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stylist Salon: Booking System</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#f6f1f4;--sf:#ffffff;--tx:#231a2e;--mu:#6d6278;--ac:#6b2d7a;--ac2:#f0e2f3;--ok:#25785f;--bad:#b3261e;--bd:#e2d8e6;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17111d;--sf:#221a2b;--tx:#f0e9f4;--mu:#a597b0;--ac:#d9a2e8;--ac2:#34243f;--ok:#66d1b0;--bad:#ff8a80;--bd:#3a2d46}}
+:root[data-theme="dark"]{--bg:#17111d;--sf:#221a2b;--tx:#f0e9f4;--mu:#a597b0;--ac:#d9a2e8;--ac2:#34243f;--ok:#66d1b0;--bad:#ff8a80;--bd:#3a2d46}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 Figtree,system-ui,sans-serif}
+h1,h2,h3{font-family:"Young Serif",Georgia,serif;font-weight:400;margin:0}
+.w{max-width:960px;margin:0 auto;padding:20px 16px 48px}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px}
+h1{font-size:30px}.sub{color:var(--mu);margin:2px 0 0;font-size:14px}
+.role{display:flex;border:1px solid var(--bd);border-radius:999px;overflow:hidden;background:var(--sf)}
+.role button{border:0;background:none;color:var(--mu);padding:8px 16px;font:inherit;cursor:pointer}
+.role button.on{background:var(--ac);color:var(--sf)}
+nav{display:flex;gap:6px;overflow-x:auto;border-bottom:1px solid var(--bd);margin-bottom:18px}
+nav button{border:0;background:none;color:var(--mu);padding:10px 14px;font:inherit;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+nav button.on{color:var(--tx);border-color:var(--ac);font-weight:600}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+input,select{font:inherit;padding:9px 11px;border:1px solid var(--bd);border-radius:8px;background:var(--sf);color:var(--tx);min-width:0}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.c{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:14px}
+.c h3{font-size:18px;margin-bottom:2px}.m{color:var(--mu);font-size:14px}
+.p{font-weight:600;margin:8px 0}
+.b{border:0;background:var(--ac);color:var(--sf);padding:9px 14px;border-radius:8px;font:inherit;cursor:pointer;font-weight:600}
+.b.s{background:var(--ac2);color:var(--ac)}.b:disabled{opacity:.45;cursor:not-allowed}
+.sl{display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:8px;margin:8px 0 14px}
+.sl button{padding:9px 0;border:1px solid var(--bd);border-radius:8px;background:var(--sf);color:var(--tx);font:inherit;cursor:pointer}
+.sl button.on{background:var(--ac);color:var(--sf);border-color:var(--ac)}
+.sl button:disabled{text-decoration:line-through;color:var(--mu);cursor:not-allowed;background:var(--ac2)}
+.tw{overflow-x:auto;margin-bottom:14px}
+table{width:100%;border-collapse:collapse;font-size:14px;background:var(--sf);border:1px solid var(--bd);border-radius:10px}
+th,td{padding:9px 11px;text-align:left;border-bottom:1px solid var(--bd);white-space:nowrap}
+th{color:var(--mu);font-weight:500}
+.st{padding:2px 10px;border-radius:999px;font-size:12px;background:var(--ac2);color:var(--ac)}
+.st.Completed{background:#d7f0e6;color:#1d5f4a}.st.Cancelled{background:#f6dcda;color:var(--bad)}
+.msg{padding:10px 14px;border-radius:8px;margin-bottom:14px;font-weight:500}
+.msg.ok{background:#d7f0e6;color:#1d5f4a}.msg.er{background:#f6dcda;color:#8c1d18}
+.log{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:12px 14px;margin-top:22px;font:13px/1.6 ui-monospace,Menlo,monospace;color:var(--mu)}
+.log b{color:var(--tx);font-family:Figtree,sans-serif}
+.k{font-family:"Young Serif",Georgia,serif;font-size:26px}
+h2{font-size:21px;margin:18px 0 10px}
+</style>
+</head>
+<body>
+<div class="w">
+<header>
+ <div><h1>Stylist Salon</h1><p class="sub">Online appointment booking · 3 branches · distributed database demo</p></div>
+ <div class="role" id="role"></div>
+</header>
+<nav id="nav"></nav>
+<main id="app"></main>
+<div class="log" id="log"></div>
+</div>
+<script>
+var BR=["Downtown","Campus Road","Mall Road"],SLOTS=["10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00"];
+var TODAY=new Date().toISOString().slice(0,10);
+var S={users:[],user:null,pmin:"",pmax:"",rs:null,rd:TODAY,rsl:0,role:"customer",tab:"services",cart:[],q:"",cat:"All",msg:null,logs:[],f:{name:"",branch:"",st:"",date:TODAY,slot:""},
+services:[{id:1,n:"Haircut",c:"Hair",p:300,d:30},{id:2,n:"Hair spa",c:"Hair",p:800,d:60},{id:3,n:"Hair colour",c:"Hair",p:1500,d:90},{id:4,n:"Beard trim",c:"Grooming",p:150,d:20},{id:5,n:"Shave",c:"Grooming",p:120,d:20},{id:6,n:"Facial",c:"Skin",p:900,d:45},{id:7,n:"Clean-up",c:"Skin",p:500,d:30},{id:8,n:"Manicure",c:"Nails",p:450,d:40}],
+stylists:[{id:1,n:"Aman",b:"Downtown",sv:[1,2,3,4,5,6,7,8]},{id:2,n:"Neha",b:"Downtown",sv:[1,2,3,6,7,8]},{id:3,n:"Rohit",b:"Campus Road",sv:[1,2,3,4,5]},{id:4,n:"Simran",b:"Campus Road",sv:[1,2,3,6,7,8]},{id:5,n:"Karan",b:"Mall Road",sv:[1,2,3,4,5]},{id:6,n:"Pooja",b:"Mall Road",sv:[1,2,3,6,7,8]}],
+appts:[{id:1,cu:"Riya",b:"Downtown",st:1,d:TODAY,sl:"11:00",it:[1,4],s:"Completed"},{id:2,cu:"Arjun",b:"Campus Road",st:3,d:TODAY,sl:"12:00",it:[1],s:"Completed"},{id:3,cu:"Meera",b:"Mall Road",st:6,d:TODAY,sl:"15:00",it:[6,7],s:"Booked"},{id:4,cu:"Dev",b:"Downtown",st:2,d:TODAY,sl:"11:00",it:[2],s:"Cancelled"}]};
+try{var sv=JSON.parse(localStorage.getItem("salon1")||"null");if(sv){S.services=sv.services;S.appts=sv.appts;if(sv.stylists)S.stylists=sv.stylists;if(sv.users)S.users=sv.users}}catch(e){}
+function save(){try{localStorage.setItem("salon1",JSON.stringify({services:S.services,appts:S.appts,stylists:S.stylists,users:S.users}))}catch(e){}}
+function esc(x){var d=document.createElement("div");d.textContent=x;return d.innerHTML}
+function $(i){return document.getElementById(i)}
+function svc(id){return S.services.filter(function(x){return x.id==id})[0]}
+function sty(id){return S.stylists.filter(function(x){return x.id==id})[0]}
+function tot(ids){return ids.reduce(function(a,i){var s=svc(i);return a+(s?s.p:0)},0)}
+function rs(n){return "₹"+n}
+function log(t){S.logs.unshift(t);S.logs=S.logs.slice(0,9)}
+function taken(st,d,sl){return S.appts.some(function(a){return a.st==st&&a.d==d&&a.sl==sl&&a.s!="Cancelled"})}
+function tabs(){return S.role=="customer"?[["services","Services"],["book","Cart and booking"],["mine","My appointments"],["acct","Account"]]:[["all","All appointments"],["reports","Reports"],["frag","Branches and fragments"],["manage","Manage services"],["staff","Staff"]]}
+function setRole(r){S.role=r;S.tab=tabs()[0][0];S.msg=null;draw()}
+function go(t){S.tab=t;S.msg=null;draw()}
+function add(id){if(S.cart.indexOf(id)<0)S.cart.push(id);S.msg={k:"ok",t:svc(id).n+" added to your cart."};draw()}
+function rem(id){S.cart=S.cart.filter(function(x){return x!=id});draw()}
+function book(){
+ var f=S.f;
+ if(!S.user){S.msg={k:"er",t:"Log in or register on the Account tab before booking."};return draw()}
+ if(!S.cart.length||!f.branch||!f.st||!f.date||!f.slot){S.msg={k:"er",t:"Pick services, branch, stylist, date and time slot first."};return draw()}
+ var T="appointment_"+f.branch.toLowerCase().replace(/ /g,"_");
+ log("<b>BEGIN</b> transaction");
+ if(taken(+f.st,f.date,f.slot)){log("INSERT INTO "+T+" … <b>blocked</b>: trigger trg_no_double_booking fired");log("<b>ROLLBACK</b>: nothing was saved");S.msg={k:"er",t:"That slot was just taken. The booking was rolled back. Pick another time."};return draw()}
+ var id=S.appts.length?Math.max.apply(null,S.appts.map(function(a){return a.id}))+1:1;
+ S.appts.push({id:id,cu:S.user.name,b:f.branch,st:+f.st,d:f.date,sl:f.slot,it:S.cart.slice(),s:"Booked"});
+ log("INSERT INTO "+T+" (id "+id+", "+esc(S.user.name)+", "+f.date+" "+f.slot+")");
+ log("INSERT INTO payment (appointment "+id+", amount "+tot(S.cart)+")");log("<b>COMMIT</b>: booking saved");
+ S.msg={k:"ok",t:"Booked. Appointment #"+id+" at "+f.branch+", "+f.date+" "+f.slot+". Total "+rs(tot(S.cart))+"."};
+ S.cart=[];f.slot="";save();S.tab="mine";draw()}
+function cancel(id){S.appts.forEach(function(a){if(a.id==id)a.s="Cancelled"});log("UPDATE appointment SET status = Cancelled WHERE id = "+id+"; <b>COMMIT</b>");save();draw()}
+function setS(id,v){S.appts.forEach(function(a){if(a.id==id)a.s=v});log("UPDATE appointment SET status = "+v+" WHERE id = "+id+"; <b>COMMIT</b>");save();draw()}
+function addSvc(){var n=$("sn").value.trim(),p=+$("sp").value,d=+$("sd").value,c=$("sc").value;
+ if(!n||p<=0||d<=0){S.msg={k:"er",t:"Enter a name, a price above 0 and a duration above 0. The CHECK constraint rejects anything else."};return draw()}
+ S.services.push({id:Math.max.apply(null,S.services.map(function(x){return x.id}))+1,n:n,c:c,p:p,d:d});log("INSERT INTO service (replicated to all 3 branches); <b>COMMIT</b>");S.msg={k:"ok",t:n+" added at every branch."};save();draw()}
+function delSvc(id){S.services=S.services.filter(function(x){return x.id!=id});S.cart=S.cart.filter(function(x){return x!=id});log("DELETE FROM service WHERE id = "+id+" (all branches); <b>COMMIT</b>");save();draw()}
+function names(ids){return ids.map(function(i){var s=svc(i);return s?s.n:"(removed)"}).join(", ")}
+function apTable(list,admin){
+ if(!list.length)return '<p class="m">No appointments yet. Book one from the Services tab.</p>';
+ var h='<div class="tw"><table><tr><th>#</th><th>Customer</th><th>Branch</th><th>Stylist</th><th>When</th><th>Services</th><th>Total</th><th>Status</th><th></th></tr>';
+ list.forEach(function(a){var x='';
+  if(admin)x='<select onchange="setS('+a.id+',this.value)">'+["Booked","In Progress","Completed","Cancelled"].map(function(o){return '<option'+(o==a.s?' selected':'')+'>'+o+'</option>'}).join("")+'</select>';
+  else if(a.s=="Booked")x='<button class="b s" onclick="openRs('+a.id+')">Reschedule</button> <button class="b s" onclick="cancel('+a.id+')">Cancel</button>';
+  h+='<tr><td>'+a.id+'</td><td>'+esc(a.cu)+'</td><td>'+a.b+'</td><td>'+sty(a.st).n+'</td><td>'+a.d+' '+a.sl+'</td><td>'+names(a.it)+'</td><td>'+rs(tot(a.it))+'</td><td><span class="st '+a.s.replace(" ","")+'">'+a.s+'</span></td><td>'+x+'</td></tr>'});
+ return h+'</table></div>'}
+function vServices(){
+ var cats=["All"].concat(S.services.map(function(s){return s.c}).filter(function(v,i,a){return a.indexOf(v)==i}));
+ return '<div class="row"><input id="q" placeholder="Search services" value="'+esc(S.q)+'" oninput="S.q=this.value;list()"><select onchange="S.cat=this.value;list()">'+cats.map(function(c){return '<option'+(c==S.cat?' selected':'')+'>'+c+'</option>'}).join("")+'</select><input type="number" min="0" placeholder="Min ₹" value="'+S.pmin+'" oninput="S.pmin=this.value;list()" style="width:100px"><input type="number" min="0" placeholder="Max ₹" value="'+S.pmax+'" oninput="S.pmax=this.value;list()" style="width:100px"></div><div class="g" id="list"></div>'}
+function list(){var q=S.q.toLowerCase();var r=S.services.filter(function(s){return(S.cat=="All"||s.c==S.cat)&&s.n.toLowerCase().indexOf(q)>-1&&(!S.pmin||s.p>=+S.pmin)&&(!S.pmax||s.p<=+S.pmax)});
+ $("list").innerHTML=r.length?r.map(function(s){return '<div class="c"><h3>'+esc(s.n)+'</h3><div class="m">'+esc(s.c)+' · '+s.d+' min</div><div class="p">'+rs(s.p)+'</div><button class="b" onclick="add('+s.id+')">'+(S.cart.indexOf(s.id)>-1?'In cart':'Add to cart')+'</button></div>'}).join(""):'<p class="m">No service matches. Try a different word or category.</p>'}
+function vBook(){
+ var f=S.f,h='';
+ h+='<h2>Your cart</h2>';
+ h+=S.cart.length?'<div class="tw"><table>'+S.cart.map(function(i){var s=svc(i);return '<tr><td>'+esc(s.n)+'</td><td>'+s.d+' min</td><td>'+rs(s.p)+'</td><td><button class="b s" onclick="rem('+i+')">Remove</button></td></tr>'}).join("")+'<tr><td><b>Total</b></td><td></td><td><b>'+rs(tot(S.cart))+'</b></td><td></td></tr></table></div>':'<p class="m">Your cart is empty. Add services from the Services tab.</p>';
+ h+='<h2>Book a slot</h2>'+(S.user?'<p class="m">Booking as '+esc(S.user.name)+'.</p>':'<p class="m">Log in on the Account tab to book.</p>')+'<div class="row"><select onchange="S.f.branch=this.value;S.f.st=\'\';S.f.slot=\'\';draw()"><option value="">Branch</option>'+BR.map(function(b){return '<option'+(b==f.branch?' selected':'')+'>'+b+'</option>'}).join("")+'</select><select onchange="S.f.st=this.value;S.f.slot=\'\';draw()"><option value="">Stylist</option>'+S.stylists.filter(function(x){return x.b==f.branch&&S.cart.every(function(i){return x.sv.indexOf(i)>-1})}).map(function(x){return '<option value="'+x.id+'"'+(x.id==f.st?' selected':'')+'>'+x.n+'</option>'}).join("")+'</select><input type="date" min="'+TODAY+'" value="'+f.date+'" onchange="S.f.date=this.value;S.f.slot=\'\';draw()"></div>';
+ if(f.st)h+='<div class="m">Crossed-out times are already booked for this stylist.</div><div class="sl">'+SLOTS.map(function(t){return '<button '+(taken(+f.st,f.date,t)?'disabled ':'')+(f.slot==t?'class="on" ':'')+'onclick="S.f.slot=\''+t+'\';draw()">'+t+'</button>'}).join("")+'</div>';
+ else h+='<p class="m">Choose a branch and stylist to see free times.</p>';
+ return h+'<button class="b" onclick="book()">Confirm booking</button>'}
+function vMine(){if(!S.user)return '<p class="m">Log in on the Account tab to see your appointments.</p>';var n=S.user.name.toLowerCase();
+ return rsPanel()+(n?apTable(S.appts.filter(function(a){return a.cu.toLowerCase()==n}),false):'<p class="m">Enter the name you booked with to see your appointments.</p>')}
+function live(){return S.appts.filter(function(a){return a.s!="Cancelled"})}
+function vReports(){return vReports0()+vReports2()}
+function vReports0(){
+ var rev=BR.map(function(b){return live().filter(function(a){return a.b==b}).reduce(function(s,a){return s+tot(a.it)},0)}),all=rev.reduce(function(a,b){return a+b},0),cnt={},hr={};
+ live().forEach(function(a){a.it.forEach(function(i){var s=svc(i);if(s)cnt[s.n]=(cnt[s.n]||0)+1});hr[a.sl]=(hr[a.sl]||0)+1});
+ var top=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]})[0]||"none yet",busy=Object.keys(hr).sort(function(a,b){return hr[b]-hr[a]})[0]||"none yet";
+ return '<div class="g"><div class="c"><div class="m">Total revenue, all branches</div><div class="k">'+rs(all)+'</div></div><div class="c"><div class="m">Most booked service</div><div class="k">'+esc(top)+'</div></div><div class="c"><div class="m">Busiest time slot</div><div class="k">'+busy+'</div></div></div>'
+ +'<h2>Global query, split by branch</h2><p class="m">SELECT SUM(revenue) over all branches becomes one small query per branch, then the answers are added.</p><div class="tw"><table><tr><th>Branch query</th><th>Result</th></tr>'+BR.map(function(b,i){return '<tr><td>SUM(revenue) FROM appointment_'+b.toLowerCase().replace(/ /g,"_")+'</td><td>'+rs(rev[i])+'</td></tr>'}).join("")+'<tr><td><b>Global total (sum of the three)</b></td><td><b>'+rs(all)+'</b></td></tr></table></div>'}
+function vFrag(){
+ return '<p class="m">Each branch stores only its own customers and appointments (horizontal fragmentation). The service menu is copied to every branch (replication).</p>'
+ +'<div class="g">'+BR.map(function(b){return '<div class="c"><h3>'+b+'</h3><div class="m">Stylists: '+S.stylists.filter(function(x){return x.b==b}).map(function(x){return x.n}).join(", ")+'</div><div class="p">'+S.appts.filter(function(a){return a.b==b}).length+' appointments stored here</div><div class="m">Also holds: a full copy of Service</div></div>'}).join("")+'</div>'
+ +'<h2>Data dictionary</h2><div class="tw"><table><tr><th>Table</th><th>How it is split</th><th>Stored at</th></tr><tr><td>Customer</td><td>Horizontal, by branch</td><td>Own branch only</td></tr><tr><td>Appointment</td><td>Horizontal, by branch</td><td>Own branch only</td></tr><tr><td>Appointment_Item</td><td>Follows its appointment</td><td>Own branch only</td></tr><tr><td>Service</td><td>Replicated</td><td>All 3 branches</td></tr><tr><td>Stylist</td><td>Horizontal, by branch</td><td>Own branch only</td></tr></table></div>'}
+function vManage(){
+ return '<h2>Add a service</h2><div class="row"><input id="sn" placeholder="Service name"><select id="sc"><option>Hair</option><option>Skin</option><option>Grooming</option><option>Nails</option></select><input id="sp" type="number" min="1" placeholder="Price ₹"><input id="sd" type="number" min="1" placeholder="Minutes"><button class="b" onclick="addSvc()">Add service</button></div><div class="tw"><table><tr><th>Service</th><th>Category</th><th>Price</th><th>Minutes</th><th></th></tr>'+S.services.map(function(s){return '<tr><td>'+esc(s.n)+'</td><td>'+esc(s.c)+'</td><td>'+rs(s.p)+'</td><td>'+s.d+'</td><td><button class="b s" onclick="delSvc('+s.id+')">Remove</button></td></tr>'}).join("")+'</table></div>'}
+function hs(s){var h=5381;for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))>>>0;return h.toString(16)}
+function val(i){return $(i).value.trim()}
+function bad(p){return p.length!=10||isNaN(p)}
+function reg(){var n=val("rn"),p=val("rp"),e=val("re").toLowerCase(),a=val("ra"),w=$("rw").value;
+ if(!n||bad(p)||e.indexOf("@")<1||!a||w.length<4){S.msg={k:"er",t:"Enter a name, a 10-digit phone, a valid email, an address and a password of 4 or more characters."};return draw()}
+ if(S.users.some(function(u){return u.email==e})){S.msg={k:"er",t:"That email is already registered. Log in instead."};return draw()}
+ S.user={id:S.users.length+1,name:n,phone:p,email:e,addr:a,pw:hs(w)};S.users.push(S.user);
+ log("INSERT INTO customer (password saved as a hash); <b>COMMIT</b>");S.msg={k:"ok",t:"Welcome, "+n+". You are logged in."};save();draw()}
+function login(){var e=val("le").toLowerCase(),w=hs($("lw").value);var u=S.users.filter(function(x){return x.email==e&&x.pw==w})[0];
+ if(!u){S.msg={k:"er",t:"Email or password is wrong."};return draw()}
+ S.user=u;S.msg={k:"ok",t:"Logged in as "+u.name+"."};draw()}
+function logout(){S.user=null;S.msg=null;draw()}
+function upd(){var u=S.user,n=val("pn"),p=val("pp"),a=val("pa");
+ if(!n||bad(p)||!a){S.msg={k:"er",t:"Name, a 10-digit phone and an address are required."};return draw()}
+ u.name=n;u.phone=p;u.addr=a;log("UPDATE customer SET name, phone, address WHERE id = "+u.id+"; <b>COMMIT</b>");S.msg={k:"ok",t:"Profile updated."};save();draw()}
+function vAcct(){
+ if(S.user){var u=S.user;return '<h2>Your profile</h2><div class="row"><input id="pn" placeholder="Name" value="'+esc(u.name)+'"><input id="pp" placeholder="Phone" value="'+esc(u.phone)+'"><input id="pa" placeholder="Address" value="'+esc(u.addr)+'"></div><p class="m">Email: '+esc(u.email)+'</p><div class="row"><button class="b" onclick="upd()">Save profile</button><button class="b s" onclick="logout()">Log out</button></div>'}
+ return '<h2>Register</h2><div class="row"><input id="rn" placeholder="Name"><input id="rp" placeholder="Phone (10 digits)"><input id="re" placeholder="Email"><input id="ra" placeholder="Address"><input id="rw" type="password" placeholder="Password"><button class="b" onclick="reg()">Register</button></div><h2>Login</h2><div class="row"><input id="le" placeholder="Email"><input id="lw" type="password" placeholder="Password"><button class="b" onclick="login()">Log in</button></div>'}
+function openRs(id){var a=S.appts.filter(function(x){return x.id==id})[0];S.rs=id;S.rd=a.d;S.rsl=0;draw()}
+function rsPanel(){if(!S.rs)return "";var a=S.appts.filter(function(x){return x.id==S.rs})[0];if(!a)return "";
+ return '<div class="c" style="margin-bottom:14px"><h3>Reschedule appointment #'+a.id+'</h3><div class="row" style="margin-top:8px"><input type="date" min="'+TODAY+'" value="'+S.rd+'" onchange="S.rd=this.value;S.rsl=0;draw()"></div><div class="sl">'+SLOTS.map(function(t,i){return '<button '+(taken(a.st,S.rd,t)&&!(a.d==S.rd&&a.sl==t)?'disabled ':'')+(S.rsl==t?'class="on" ':'')+'onclick="S.rsl=SLOTS['+i+'];draw()">'+t+'</button>'}).join("")+'</div><button class="b" onclick="doRs()">Move appointment</button> <button class="b s" onclick="S.rs=null;draw()">Close</button></div>'}
+function doRs(){var a=S.appts.filter(function(x){return x.id==S.rs})[0];
+ if(!S.rsl){S.msg={k:"er",t:"Pick a new time slot first."};return draw()}
+ log("<b>BEGIN</b> transaction");
+ if(taken(a.st,S.rd,S.rsl)&&!(a.d==S.rd&&a.sl==S.rsl)){log("UPDATE appointment … <b>blocked</b>: trigger trg_no_double_booking fired");log("<b>ROLLBACK</b>: nothing was changed");S.msg={k:"er",t:"That slot is taken. Nothing was changed."};return draw()}
+ a.d=S.rd;a.sl=S.rsl;log("UPDATE appointment SET date = "+a.d+", slot = "+a.sl+" WHERE id = "+a.id+"; <b>COMMIT</b>");S.rs=null;S.msg={k:"ok",t:"Appointment moved to "+a.d+" "+a.sl+"."};save();draw()}
+function addSty(){var n=val("tn"),b=$("tb").value;if(!n){S.msg={k:"er",t:"Enter the stylist’s name."};return draw()}
+ S.stylists.push({id:Math.max.apply(null,S.stylists.map(function(x){return x.id}))+1,n:n,b:b,sv:[]});log("INSERT INTO stylist at "+b+"; <b>COMMIT</b>");S.msg={k:"ok",t:n+" added to "+b+". Assign services below."};save();draw()}
+function tog(sid,id){var s=sty(sid),i=s.sv.indexOf(id);if(i>-1)s.sv.splice(i,1);else s.sv.push(id);log("UPDATE stylist_service for stylist "+sid+"; <b>COMMIT</b>");save();draw()}
+function vStaff(){
+ return '<h2>Add a stylist</h2><div class="row"><input id="tn" placeholder="Stylist name"><select id="tb">'+BR.map(function(b){return '<option>'+b+'</option>'}).join("")+'</select><button class="b" onclick="addSty()">Add stylist</button></div><h2>Assign services</h2><div class="g">'+S.stylists.map(function(s){return '<div class="c"><h3>'+esc(s.n)+'</h3><div class="m">'+s.b+'</div><div style="margin-top:8px">'+S.services.map(function(v){return '<label style="display:block;font-size:14px"><input type="checkbox" '+(s.sv.indexOf(v.id)>-1?'checked ':'')+'onchange="tog('+s.id+','+v.id+')"> '+esc(v.n)+'</label>'}).join("")+'</div></div>'}).join("")+'</div>'}
+function vReports2(){var sb={},dy={},mo={};
+ live().forEach(function(a){var t=tot(a.it),k=sty(a.st).n+" ("+a.b+")";sb[k]=sb[k]||[0,0];sb[k][0]++;sb[k][1]+=t;dy[a.d]=(dy[a.d]||0)+t;var m=a.d.slice(0,7);mo[m]=(mo[m]||0)+t});
+ function tb(h,o,f){return '<div class="tw"><table><tr>'+h+'</tr>'+Object.keys(o).sort().map(f).join("")+'</table></div>'}
+ return '<h2>Bookings by stylist</h2>'+tb('<th>Stylist</th><th>Bookings</th><th>Revenue</th>',sb,function(k){return '<tr><td>'+esc(k)+'</td><td>'+sb[k][0]+'</td><td>'+rs(sb[k][1])+'</td></tr>'})
+ +'<h2>Daily revenue</h2>'+tb('<th>Date</th><th>Revenue</th>',dy,function(k){return '<tr><td>'+k+'</td><td>'+rs(dy[k])+'</td></tr>'})
+ +'<h2>Monthly revenue</h2>'+tb('<th>Month</th><th>Revenue</th>',mo,function(k){return '<tr><td>'+k+'</td><td>'+rs(mo[k])+'</td></tr>'})}
+function draw(){
+ $("role").innerHTML=["customer","admin"].map(function(r){return '<button class="'+(S.role==r?'on':'')+'" onclick="setRole(\''+r+'\')">'+(r=="customer"?"Customer":"Admin")+'</button>'}).join("");
+ $("nav").innerHTML=tabs().map(function(t){return '<button class="'+(S.tab==t[0]?'on':'')+'" onclick="go(\''+t[0]+'\')">'+t[1]+'</button>'}).join("");
+ var v={services:vServices,book:vBook,mine:vMine,acct:vAcct,staff:vStaff,all:function(){return apTable(S.appts,true)},reports:vReports,frag:vFrag,manage:vManage}[S.tab]();
+ $("app").innerHTML=(S.msg?'<div class="msg '+S.msg.k+'">'+esc(S.msg.t)+'</div>':'')+v;
+ if(S.tab=="services")list();
+ $("log").innerHTML='<b>Transaction log</b> (what the database does behind each action)<br>'+(S.logs.length?S.logs.join("<br>"):"Nothing yet. Book or cancel an appointment to see it.")}
+draw();
+</script>
+</body>
+</html>

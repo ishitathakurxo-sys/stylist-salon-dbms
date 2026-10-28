@@ -1,0 +1,78 @@
+﻿--------------
+SELECT CURRENT_USER() AS logged_in_as, CURRENT_ROLE() AS active_role
+--------------
+
++----------------------+----------------------+
+| logged_in_as         | active_role          |
++----------------------+----------------------+
+| u_customer@localhost | `salon_customer`@`%` |
++----------------------+----------------------+
+--------------
+CALL search_services('hair', NULL, NULL, NULL)
+--------------
+
++------------+-------------+----------+---------+----------+
+| service_id | name        | category | price   | duration |
++------------+-------------+----------+---------+----------+
+|          3 | Hair colour | Hair     | 1500.00 |       90 |
+|          2 | Hair spa    | Hair     |  800.00 |       60 |
+|          1 | Haircut     | Hair     |  300.00 |       30 |
++------------+-------------+----------+---------+----------+
+--------------
+SELECT * FROM v_service_menu LIMIT 3
+--------------
+
++------------+-------------+----------+---------+----------+
+| service_id | name        | category | price   | duration |
++------------+-------------+----------+---------+----------+
+|          1 | Haircut     | Hair     |  300.00 |       30 |
+|          2 | Hair spa    | Hair     |  800.00 |       60 |
+|          3 | Hair colour | Hair     | 1500.00 |       90 |
++------------+-------------+----------+---------+----------+
+--------------
+SELECT login_customer('riya@mail.com', 'pass123') AS login_works
+--------------
+
++-------------+
+| login_works |
++-------------+
+|           1 |
++-------------+
+--------------
+SELECT * FROM customer
+--------------
+
+--------------
+SELECT * FROM service
+--------------
+
+--------------
+DELETE FROM service
+--------------
+
+--------------
+UPDATE payment SET amount = 0
+--------------
+
+--------------
+CALL add_service('Free haircut', 'Hair', 1, 10, @m)
+--------------
+
+--------------
+mysql.exe : ERROR 1142 (42000) at line 11: SELECT command denied to user 'u_customer'@'localhost' for table 'customer'
+At C:\Users\DELL\Documents\StylistSalon\run.ps1:39 char:69
++ ... ql') -Raw | & $Mysql -u u_customer -h 127.0.0.1 -P $Port --table --fo ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (ERROR 1142 (420...able 'customer':String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ERROR 1142 (42000) at line 12: SELECT command denied to user 'u_customer'@'localhost' for table 'service'
+ERROR 1142 (42000) at line 13: DELETE command denied to user 'u_customer'@'localhost' for table 'service'
+ERROR 1142 (42000) at line 14: UPDATE command denied to user 'u_customer'@'localhost' for table 'payment'
+ERROR 1370 (42000) at line 15: execute command denied to user 'u_customer'@'localhost' for routine 
+'stylist_salon.add_service'
+ERROR 1370 (42000) at line 16: execute command denied to user 'u_customer'@'localhost' for routine 
+'stylist_salon.report_revenue'
+CALL report_revenue()
+--------------
+
